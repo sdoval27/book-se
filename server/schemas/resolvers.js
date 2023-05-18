@@ -1,23 +1,33 @@
-const { User, Book } = require('../models');
+const { User } = require('../models');
+const { AuthenticationError } = require('apollo-server-express');
+const { signToken } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    User: async () => {
-      return await User.find({}).populate('classes').populate({
-        path: 'classes',
-        populate: 'book'
-      });
-    },
-    Book: async () => {
-      return await Class.find({}).populate('professor');
-    },
-    professors: async () => {
-      // Populate the classes subdocument on every instance of Professor
-      return await Professor.find({}).populate('classes');
+    me: async (parents, args, context ) => {
+      if (context.user){
+        return User.findOne({_id: context.user.id}).populate('books');
+      }
     }
   },
   Mutation:{
-    createUser: async (parent, args)
+    login:
+    addUser: async (parent, {}) => {
+        return await User.create();
+    },
+    saveBook: async (parent, {id, savedBooks} ) => {
+        return await User.findOneAndUpdate(
+            {_id: id},
+            { books },
+            {new: true}
+        );
+    }
+    removeBook: async (parent, {id, savedBooks}) => {
+        return await User.findOneAndDelete(
+            {_id: id},
+            {savedBooks}
+        )
+    }
   }
 };
 

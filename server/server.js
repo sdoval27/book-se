@@ -14,6 +14,7 @@ const server = new ApolloServer({
   resolvers,
 });
 
+//change to true?
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
