@@ -14,34 +14,60 @@ import { removeBookId } from '../utils/localStorage';
 
 import Auth from '../utils/auth';
 
+// const SavedBooks = () => {
+//   const [savedBooks, setSavedBooks] = useState([]);
+//   const { loading, data } = useQuery(QUERY_ME);
+
+
+//   const userData = data?.me || {};
+
+// const handleDeleteBook = async (bookId) => {
+//   const token = Auth.loggedIn()? Auth.getToken():null;
+
+
+
 const SavedBooks = () => {
-  const { loading, data } = useQuery(QUERY_ME);
-  const [removeBook, {error}] = useMutation({REMOVE_BOOK});
+  const [savedBooks, setSavedBooks] = useState([]);
 
-  const userData = data?.me || {};
+  const { loading, data: userData, error } = useQuery(QUERY_ME, {
+    onCompleted: (data) => {
+      setSavedBooks(data?.me?.savedBooks || []);
+    },
+  });
 
-const handleDeleteBook = async (bookId) => {
-  const token = Auth.loggedIn()? Auth.getToken():null;
+  const [removeBook, { error: removeBookError }] = useMutation(REMOVE_BOOK);
 
-  if (!token) {
-    return false;
+  if (loading) {
+    return <h2>Loading...</h2>;
   }
 
-  try {
-    const {data} = await removeBook({
-      variables: {bookId},
-    });
+  if (error) {
+    console.error(error);
+    return <h2>Error occurred. Please try again later.</h2>;
+  }
 
-    removeBookId(bookId);
-  }catch (err){
+  const handleDeleteBook = async (bookId) => {
+    const token = Auth.loggedIn() ? Auth.getToken() : null;
+
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const { data } = await removeBook({
+        variables: { bookId }
+      });
+
+      removeBookId(bookId);
+    
+
+    setSavedBooks((prevSavedBooks) =>
+        prevSavedBooks.filter((book) => book.bookId !== bookId))
+  
+      }catch (err){
     console.error(err);
   }
 };
-
-if (loading) {
-  return <h2> LOADING...</h2>;
-}
-
   return (
     <>
       <div fluid className="text-light bg-dark p-5">
